@@ -1,8 +1,9 @@
 <template>
   <form @submit.prevent="onSubmit">
-    <div class="form-control">
+    <div class="form-control" :class="{invalid: validatedName === 'invalid'}">
       <label for="user-name">Your Name</label>
-      <input id="user-name" name="user-name" type="text" v-model="name"/>
+      <input id="user-name" name="user-name" type="text" v-model.trim="name" @blur="validateInput"/>
+      <p v-if="validatedName === 'invalid'">Invalid name!</p>
     </div>
     <div class="form-control">
       <label for="age">Your Age (Years)</label>
@@ -33,6 +34,10 @@
       </div>
     </div>
     <div class="form-control">
+      <!-- <rating-control :modelValue="rating" @update:ModelValue="show"></rating-control> -->
+      <rating-control :modelValue="rating" @updateModelValue="setRating"></rating-control>
+    </div>
+    <div class="form-control">
       <h2>How do you learn?</h2>
       <div>
         <input id="how-video" name="how" type="radio" value="video" v-model="radio"/>
@@ -54,24 +59,48 @@
 </template>
 
 <script>
+import RatingControl from './RatingControl.vue';
+
 export default {
+  components: {
+    RatingControl
+  },
   data() {
     return {
       name: '',
       age: null, //null because expected type number,
       referrer: 'google', // set default value (get string from value in option)
       checkboxes: [], // If we have more than 1 checkbox, we should use array. If checkbox=checked, we will get checked values in array
-      radio: null // null because expect string if one of theese radio will be checked
+      radio: null, // null because expect string if one of theese radio will be checked
+      validatedName: 'pending', // default status if the input is empty
+      rating: null
     }
   },
   methods: {
     onSubmit() {
       console.log(`Name: ${this.name}`);
+      this.name = '';
       console.log('Age: ' + this.age); // From v-model we got type number
+      this.age = null
       console.log(`Age with refs: ${this.$refs.userAge_refs.value}`); // From refs we got type string [be patient]
       console.log('Referrer: ' + this.referrer); // Got value from option (Not the same as text)
+      this.referrer = 'google';
       console.log('Checkboxes: ' + this.checkboxes); // We got array values like [val1, val2, val3] if checkbox checked
+      this.checkboxes = [];
       console.log('Radio: ' + this.radio); // We got value attribute from radiobutton input like 'video'
+      this.radio = null;
+      console.log('Rating: ' + this.rating);
+      this.rating = null;
+    },
+    validateInput() {
+      if (this.name == '') {
+        this.validatedName = 'invalid'
+      } else {
+        this.validatedName = 'valid'
+      }
+    },
+    setRating (option) {
+      this.rating = option;
     }
   }
 }
@@ -88,6 +117,15 @@ form {
 
 .form-control {
   margin: 0.5rem 0;
+}
+
+.form-control.invalid input {
+  border-color: red;
+}
+
+.form-control.invalid label,
+.form-control.invalid p {
+  color: red;
 }
 
 label {
